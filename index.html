@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhựt Linh Food</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:Arial,sans-serif;background:#fff8f2;color:#252525}
+        header{background:linear-gradient(135deg,#ff5a36,#ff8a3d);color:white;padding:15px 6%;position:sticky;top:0;z-index:10;box-shadow:0 3px 15px #0002}
+        .nav{max-width:1100px;margin:auto;display:flex;align-items:center;justify-content:space-between}
+        .logo{display:flex;align-items:center;gap:10px;font-size:25px;font-weight:bold}
+        .logo img{width:48px;height:48px;object-fit:cover;border-radius:50%;border:2px solid white}
+        .cart{background:white;color:#f04e2d;border:none;border-radius:22px;padding:10px 16px;font-weight:bold;cursor:pointer}
+        .hero{max-width:1100px;margin:25px auto;padding:45px 7%;border-radius:28px;background:linear-gradient(135deg,#ff7048,#ffad55);color:white;display:flex;align-items:center;justify-content:space-between}
+        .hero h1{font-size:42px;margin-bottom:10px}.hero p{font-size:18px}.hero .emoji{font-size:90px}
+        .container{max-width:1100px;margin:35px auto;padding:0 18px}h2{font-size:28px;margin-bottom:18px}
+        .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+        .card{background:white;border-radius:20px;overflow:hidden;box-shadow:0 5px 18px #00000010;transition:.2s}.card:hover{transform:translateY(-5px)}
+        .food-img{height:145px;background:#ffe5d2;display:flex;align-items:center;justify-content:center;font-size:70px}
+        .info{padding:15px}.info h3{font-size:18px;margin-bottom:7px}.desc{font-size:13px;color:#777}
+        .bottom{display:flex;align-items:center;justify-content:space-between;margin-top:13px}.price{font-weight:bold;color:#ef4d2c}
+        .add{background:#ff5a36;color:white;border:none;border-radius:12px;padding:8px 11px;font-weight:bold;cursor:pointer}
+        footer{text-align:center;padding:35px;color:#777}
+        .modal{display:none;position:fixed;inset:0;background:#0007;z-index:20;align-items:center;justify-content:center;padding:18px}
+        .modal.show{display:flex}.box{background:white;border-radius:22px;max-width:500px;width:100%;padding:22px;max-height:85vh;overflow:auto}
+        .box h2{display:flex;justify-content:space-between}.close{border:none;background:none;font-size:25px;cursor:pointer}
+        .item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee}
+        .qty button{border:none;background:#ffe2d8;border-radius:8px;width:28px;height:28px;margin:0 3px;cursor:pointer}
+        .total{font-size:20px;font-weight:bold;text-align:right;margin:18px 0}
+        form input,form textarea{width:100%;padding:12px;margin:6px 0 10px;border:1px solid #ddd;border-radius:10px;font-size:15px}
+        .order{width:100%;padding:13px;border:none;border-radius:12px;background:#ff5a36;color:white;font-weight:bold;font-size:16px;cursor:pointer}
+        @media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:32px}.hero .emoji{font-size:65px}}
+        @media(max-width:480px){.grid{grid-template-columns:repeat(2,1fr);gap:12px}.food-img{height:110px;font-size:55px}.info{padding:11px}.hero{padding:30px 20px}.hero .emoji{font-size:50px}.logo{font-size:19px}.logo img{width:40px;height:40px}}
+    </style>
+</head>
+<body>
+<header><div class="nav">
+    <div class="logo"><img src="IMG_0824.jpeg" alt="Logo Nhựt Linh Food"><span>Nhựt Linh Food</span></div>
+    <button class="cart" onclick="openCart()">🛒 Giỏ hàng (<span id="count">0</span>)</button>
+</div></header>
+
+<section class="hero"><div><h1>Ăn ngon mỗi ngày 😋</h1><p>Đồ ăn nóng hổi, thơm ngon — đặt món nhanh tại Nhựt Linh Food!</p></div><div class="emoji">🍔🍟</div></section>
+
+<main class="container"><h2>🔥 Món bán chạy</h2><div class="grid" id="products"></div></main>
+<footer>© 2026 Nhựt Linh Food ❤️</footer>
+
+<div class="modal" id="modal"><div class="box">
+    <h2>🛒 Giỏ hàng <button class="close" onclick="closeCart()">×</button></h2>
+    <div id="cartItems"></div>
+    <div class="total">Tổng: <span id="total">0đ</span></div>
+    <form onsubmit="order(event)">
+        <input id="name" placeholder="Tên người nhận" required>
+        <input id="phone" placeholder="Số điện thoại" required>
+        <textarea id="address" placeholder="Địa chỉ giao hàng" required></textarea>
+        <button class="order">Đặt hàng</button>
+    </form>
+</div></div>
+
+<script>
+const products=[
+["🍗","Gà rán giòn","35.000đ",35000],["🍔","Burger bò","30.000đ",30000],
+["🍟","Khoai tây chiên","20.000đ",20000],["🌭","Xúc xích nướng","18.000đ",18000],
+["🍕","Pizza mini","45.000đ",45000],["🍜","Mì cay","35.000đ",35000],
+["🥤","Trà đào","15.000đ",15000],["🧋","Trà sữa","25.000đ",25000]
+];
+let cart=[];
+const productBox=document.getElementById("products");
+products.forEach((p,i)=>{productBox.innerHTML+=`
+<div class="card"><div class="food-img">${p[0]}</div><div class="info">
+<h3>${p[1]}</h3><div class="desc">Thơm ngon, hấp dẫn, làm mới mỗi ngày.</div>
+<div class="bottom"><span class="price">${p[2]}</span><button class="add" onclick="add(${i})">+ Thêm</button></div>
+</div></div>`});
+function add(i){cart.push(i);update()}
+function update(){
+ document.getElementById("count").textContent=cart.length;
+ let counts={},total=0,html="";
+ cart.forEach(i=>counts[i]=(counts[i]||0)+1);
+ Object.keys(counts).forEach(i=>{let q=counts[i],p=products[i];total+=p[3]*q;
+ html+=`<div class="item"><span>${p[0]} ${p[1]}<br><small>${p[2]}</small></span>
+ <span class="qty"><button onclick="removeOne(${i})">−</button>${q}<button onclick="add(${i})">+</button></span></div>`});
+ document.getElementById("cartItems").innerHTML=html||"<p>Giỏ hàng đang trống.</p>";
+ document.getElementById("total").textContent=total.toLocaleString("vi-VN")+"đ";
+}
+function removeOne(i){let index=cart.indexOf(i);if(index>-1)cart.splice(index,1);update()}
+function openCart(){document.getElementById("modal").classList.add("show");update()}
+function closeCart(){document.getElementById("modal").classList.remove("show")}
+function order(e){
+ e.preventDefault();
+ if(cart.length===0){alert("Bạn chưa chọn món!");return}
+ alert("🎉 Đặt hàng thành công! Nhựt Linh Food sẽ liên hệ bạn sớm.");
+ cart=[];update();e.target.reset();closeCart()
+}
+update();
+</script>
+</body>
+</html>
